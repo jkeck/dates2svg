@@ -2,7 +2,7 @@
 
 # Dates2svg
 
-Turn an array of simple objects including dates and values into an SVG month grid with heat-map.
+Turn an array of simple objects that respond to #value with dates and #hits with a number into an SVG month grid with heat-map.
 
 ![date range heat map](http://i.imgur.com/6dcL09C.png)
 
