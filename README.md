@@ -1,8 +1,10 @@
+[![Build Status](https://travis-ci.org/jkeck/dates2svg.png?branch=master)](https://travis-ci.org/jkeck/dates2svg)
+
 # Dates2svg
 
-Turn an array of simple objects including dates and values into an SVG month grid with heatmap.
+Turn an array of simple objects including dates and values into an SVG month grid with heat-map.
 
-![my image](http://i.imgur.com/6dcL09C.png)
+![date range heat map](http://i.imgur.com/6dcL09C.png)
 
 ## Installation
 
@@ -30,17 +32,21 @@ Passing that array to Dates2SVG.new will give you your object that you can get t
 
     svg = Dates2SVG.new(dates).to_svg
     
+### Options
+
+There are various options that can be passed in as an options has upon initialization.  These options are year_range, color_options, box_size, and border.
+    
 By default you will only get years that occur in the data passed in the dates array.  You can specify a range of years by passing a year_range option.
 
     svg = Dates2SVG.new(dates, :year_range => (2000..2020)).to_svg
 
-If you would like to change the colors that the grid uses for the heatmap you can specify differnt colors in the color_options option.
+If you would like to change the colors that the grid uses for the heat-map you can specify different colors in the color_options option.
 
     svg = Dates2SVG.new(dates, :color_options => ["black", "purple", "blue", "green", "yellow", "red"]).to_svg
     
-You can see the current range of colors being used in the SVG by calling the color_range method on the Dates2SVG object.
+You can see the current range of colors and hits ranges being used in the SVG by accessing in the color_range key in the options hash.  This would be useful in generating a legend.
 
-    color_range = Dates2SVG.new(dates).color_range
+    color_range = Dates2SVG.new(dates).options[:color_range]
 
 ## Contributing
 
