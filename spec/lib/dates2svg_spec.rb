@@ -76,34 +76,32 @@ describe Dates2SVG do
   
   describe "colors" do
     describe "color_range" do
-      it "should get the default max_hits when one is not provided" do
-        range = Dates2SVG.color_range
-        range.keys.first.should == [0]
-        range[[0]].should == "#EEEEEE"
+      it "should use the default maximum of 3000 if one isn't available (althouth that shouldn't happen)" do
+        range = Dates2SVG.new([]).options[:color_range]
         range.keys.last.should == (2401..3000)
         range[(2401..3000)].should == "#FF0000"
       end
-      it "should use the max option passed to provide a differnt color range" do
-        range = Dates2SVG.color_range(:max => 6000)
+      it "should be from 0 - the max number of hits" do
+        range = @ranges.options[:color_range]
         range.keys.first.should == [0]
         range[[0]].should == "#EEEEEE"
-        range.keys.last.should == (4801..6000)
-        range[(4801..6000)].should == "#FF0000"
+        range.keys.last.should == (1197..1499)
+        range[(1197..1499)].should == "#FF0000"
       end
       it "should use an updated color range if one is provided" do
         colors = ["black", "purple", "blue", "green", "yellow", "red"]
-        range = Dates2SVG.color_range(:max => 6000, :color_options => colors)
+        range = Dates2SVG.new([], :color_options => colors).options[:color_range]
         range.keys.first.should == [0]
         range[[0]].should == colors.first
-        range.keys.last.should == (4801..6000)
-        range[(4801..6000)].should == colors.last
+        range.keys.last.should == (2401..3000)
+        range[(2401..3000)].should == colors.last
       end
       it "should have more range options if additional colors are passed" do
         colors = ["black", "purple", "blue", "green", "yellow", "red"]
-        range = Dates2SVG.color_range(:max => 6000, :color_options => colors)
+        range = Dates2SVG.new([], :color_options => colors).options[:color_range]
         range.keys.length.should == colors.length
         colors << ["#FF0000", "grey"]
-        range = Dates2SVG.color_range(:max => 6000, :color_options => colors)
+        range = Dates2SVG.new([], :color_options => colors).options[:color_range]
         range.keys.length.should == colors.length
       end
     end
@@ -145,12 +143,12 @@ describe Dates2SVG do
       end
       describe "color_options" do
         it "use the range of color provided" do
-          [Dates2SVG.color_options.first, Dates2SVG.color_options.last].each do |color|
+          [@ranges.options[:color_options].first, @ranges.options[:color_options].last].each do |color|
             @ranges.to_svg.should match(/fill: #{color};/)
           end
           new_options = ["black", "purple", "blue", "green", "yellow", "red"]
           new_range = Dates2SVG.new(@dates, :color_options => new_options).to_svg
-          Dates2SVG.color_options.each do |color|
+          @ranges.options[:color_options].each do |color|
             new_range.should_not match(/fill: #{color};/)
           end
           [new_options.first, new_options.last].each do |color|
