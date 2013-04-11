@@ -61,15 +61,22 @@ class Dates2SVG
   end
   
   def self.color_range(options={})
-    max_hits = options[:max] || 3000
-    section = (max_hits) / 5
-    colors = {}
     color_options = options[:color_options] || self.color_options
-    ranges = [[0], (1..(section * 1)), 
-              (((section * 1) + 1)..(section * 2)), 
-              (((section * 2) + 1)..(section * 3)), 
-              (((section * 3) + 1)..(section * 4)), 
-              (((section * 4) + 1)..max_hits)]
+    max_hits = options[:max] || 3000
+    section = (max_hits) / (color_options.length - 1)
+    colors = {}
+    ranges = [[0]]
+    i = 0
+    (color_options.length - 1).times do
+      if i == 0
+        ranges << (1..(section * 1))
+      elsif ((i+1) == (color_options.length - 1))
+        ranges << (((section * i) + 1)..max_hits)
+      else
+        ranges << (((section * i) + 1)..(section * (i + 1)))
+      end
+      i = i+1
+    end
     color_options.each_with_index do |color, index|
       unless ranges[index].is_a?(Range) and [ranges[index].first, ranges[index].last].include?(0)
         colors[ranges[index]] = color

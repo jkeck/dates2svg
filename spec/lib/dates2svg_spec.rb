@@ -98,6 +98,14 @@ describe Dates2SVG do
         range.keys.last.should == (4801..6000)
         range[(4801..6000)].should == colors.last
       end
+      it "should have more range options if additional colors are passed" do
+        colors = ["black", "purple", "blue", "green", "yellow", "red"]
+        range = Dates2SVG.color_range(:max => 6000, :color_options => colors)
+        range.keys.length.should == colors.length
+        colors << ["#FF0000", "grey"]
+        range = Dates2SVG.color_range(:max => 6000, :color_options => colors)
+        range.keys.length.should == colors.length
+      end
     end
   end
   
