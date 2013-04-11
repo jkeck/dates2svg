@@ -9,21 +9,6 @@ class Dates2SVG
     @options = options
     parse_dates
   end
-
-  def parse_dates
-    @dates.map do |date|
-      date_from_facet_value(date)
-    end.sort do |a, b|
-      a.year.to_i <=> b.year.to_i
-    end.group_by(&:year).each do |year, dates|
-      years << Dates2SVG::Year.new(year, dates)
-    end
-  end
-  
-  def date_from_facet_value(facet)
-    facet.value[/^(\d{4})-(\d{2})-(\d{2})/]
-    Dates2SVG::DateWithValue.new(:year => $1, :month => $2, :day => $3, :hits => facet.hits)
-  end
   
   def years
     @years ||= []
@@ -91,6 +76,21 @@ class Dates2SVG
   
   private
   
+  def parse_dates
+    @dates.map do |date|
+      date_from_facet_value(date)
+    end.sort do |a, b|
+      a.year.to_i <=> b.year.to_i
+    end.group_by(&:year).each do |year, dates|
+      years << Dates2SVG::Year.new(year, dates)
+    end
+  end
+
+  def date_from_facet_value(facet)
+    facet.value[/^(\d{4})-(\d{2})-(\d{2})/]
+    Dates2SVG::DateWithValue.new(:year => $1, :month => $2, :day => $3, :hits => facet.hits)
+  end
+
   def all_years
     @options[:year_range] || years.map{|y| y.year }
   end
