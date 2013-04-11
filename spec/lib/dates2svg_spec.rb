@@ -111,6 +111,31 @@ describe Dates2SVG do
   
   describe "svg export" do
     describe "options" do
+      describe "box size" do
+        it "should default to a 15px box size" do
+          @ranges.to_svg.should match(/<rect.*width='15' height='15'.*>/)
+        end
+        it "should change the box size when a box_size option is available" do
+          new_range = Dates2SVG.new(@dates, :box_size => "10").to_svg
+          new_range.should_not match(/<rect.*width='15' height='15'.*>/)
+          new_range.should match(/<rect.*width='10' height='10'.*>/)
+        end
+      end
+      describe "border" do
+        it "should default to a 1px border" do
+          @ranges.to_svg.should include "<g transform='translate(28,0)'>"
+        end
+        it "should change the border when a border options is available" do
+          border_2 = Dates2SVG.new(@dates, :border => "2").to_svg
+          border_2.should_not include "<g transform='translate(28,0)'>"
+          border_2.should include "<g transform='translate(29,0)'>"
+          
+          border_4 = Dates2SVG.new(@dates, :border => "4").to_svg
+          border_4.should_not include "<g transform='translate(28,0)'>"
+          border_4.should include "<g transform='translate(31,0)'>"
+        end
+      end
+      
       describe "year_range" do
         it "should return only the requested years" do
           @ranges.to_svg.should match(/data-year='1779'/)

@@ -1,12 +1,10 @@
 require "dates2svg/version"
 
 class Dates2SVG
-  BOX_SIZE = 15
-  BORDER = 1
-  BOX_WITH_BORDER = (BOX_SIZE + BORDER)
   def initialize(dates, options={})
     @dates = dates
     @options = options
+    process_options
     parse_dates
   end
   
@@ -29,14 +27,14 @@ class Dates2SVG
   def to_svg
     svg = ""
     # + 35 and +50 gives us the space for the year month text
-    svg << "<svg height='#{(12 * BOX_WITH_BORDER) + 35}' width='#{(all_years.to_a.length * BOX_WITH_BORDER) + 50}'>"
+    svg << "<svg height='#{(12 * @options[:box_with_border]) + 35}' width='#{(all_years.to_a.length * @options[:box_with_border]) + 50}'>"
       svg << "<g transform='translate(20,35)'>"
         all_years.each_with_index do |year, index|
           selected_years = years.select{|y| y.year.to_i == year.to_i }
           unless selected_years.length == 0
             svg << selected_years.first.to_svg(@options.merge(:index => index, :max => max))
           else
-            svg << Dates2SVG::Year.new(year, []).to_svg(@options.merge(:index => index, :max => max))
+            svg << Dates2SVG::Year.new(year, [], @options).to_svg(@options.merge(:index => index, :max => max))
           end
         end
         svg << calendar_year_listing
@@ -82,7 +80,7 @@ class Dates2SVG
     end.sort do |a, b|
       a.year.to_i <=> b.year.to_i
     end.group_by(&:year).each do |year, dates|
-      years << Dates2SVG::Year.new(year, dates)
+      years << Dates2SVG::Year.new(year, dates, @options)
     end
   end
 
@@ -98,7 +96,7 @@ class Dates2SVG
   def calendar_year_listing
     svg = ""
     all_years.each_with_index do |year, index|
-      svg << "<text x='3' y='#{(BOX_WITH_BORDER * index) + 20}' transform='rotate(-90)' class='year'>#{year}</text>"
+      svg << "<text x='3' y='#{(@options[:box_with_border] * index) + 20}' transform='rotate(-90)' class='year'>#{year}</text>"
     end
     svg
   end
@@ -106,9 +104,22 @@ class Dates2SVG
   def calendar_month_listing
     svg = ""
     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", " Oct", "Nov", "Dec"].each_with_index do |month, index|
-      svg << "<text text-anchor='middle' class='cmonth' dx='0' dy='#{(BOX_WITH_BORDER * index) + 10}'>#{month}</text>"
+      svg << "<text text-anchor='middle' class='cmonth' dx='0' dy='#{(@options[:box_with_border] * index) + 10}'>#{month}</text>"
     end
     svg
+  end
+  
+  def process_options
+    @options = self.class.default_options.merge(@options)
+    @options[:box_with_border] = (@options[:box_size].to_i + @options[:border].to_i)
+  end
+  
+  def self.default_options
+    {:color_options => ["#EEEEEE", "#330000", "#660000", "#990000", "#CC0000", "#FF0000"],
+     :box_size => 15,
+     :border => 1,
+     :box_with_border => nil
+    }
   end
   
   class DateWithValue
@@ -123,18 +134,11 @@ class Dates2SVG
   
   class Year
     attr_reader :year
-    def initialize(year, dates)
+    def initialize(year, dates, options={})
       @year = year
       @dates = dates
+      @options = options
       parse_dates
-    end
-    
-    def parse_dates
-      @dates.sort do |a, b|
-        a.month.to_i <=> b.month.to_i
-      end.group_by(&:month).map do |month, dates|
-        months << Dates2SVG::Month.new(@year, month, dates)
-      end
     end
     
     def months
@@ -143,18 +147,26 @@ class Dates2SVG
     
     def to_svg(options={})
       svg = ""
-      svg << "<g transform='translate(#{(BOX_WITH_BORDER * options[:index]) + 12},0)'>"
+      svg << "<g transform='translate(#{(@options[:box_with_border] * options[:index]) + 12},0)'>"
         all_months.each_with_index do |month, index|
           unless months.select{|m| m.month == month}.length == 0
             svg << months.select{|m| m.month == month}.first.to_svg(options.merge(:index => index))
           else
-            svg << Dates2SVG::Month.new(@year, month, []).to_svg(options.merge(:index => index))
+            svg << Dates2SVG::Month.new(@year, month, [], @options).to_svg(options.merge(:index => index))
           end
         end
       svg << "</g>"
     end
     
     private
+    
+    def parse_dates
+      @dates.sort do |a, b|
+        a.month.to_i <=> b.month.to_i
+      end.group_by(&:month).map do |month, dates|
+        months << Dates2SVG::Month.new(@year, month, dates, @options)
+      end
+    end
     
     def all_months
       ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
@@ -164,10 +176,11 @@ class Dates2SVG
   
   class Month
     attr_reader :year, :month
-    def initialize(year, month, dates)
+    def initialize(year, month, dates, options={})
       @year = year
       @month = month
       @dates = dates
+      @options = options
     end
     def hits
       @hits ||= (@dates.map{|d| d.hits.to_i }.inject(:+) || 0)
@@ -175,7 +188,7 @@ class Dates2SVG
     
     def to_svg(options={})
       svg = ""
-      svg << "<rect data-hits='#{hits}' data-year='#{@year}' data-month='#{@month}' class='month' width='#{BOX_SIZE}' height='#{BOX_SIZE}' y='#{BOX_WITH_BORDER * options[:index]}' style='fill: #{color(options)};'>"
+      svg << "<rect data-hits='#{hits}' data-year='#{@year}' data-month='#{@month}' class='month' width='#{@options[:box_size]}' height='#{@options[:box_size]}' y='#{@options[:box_with_border] * options[:index]}' style='fill: #{color(options)};'>"
         svg << "<title>#{hits} hits on #{@year}-#{@month}</title>"
       svg << "</rect>"
     end
